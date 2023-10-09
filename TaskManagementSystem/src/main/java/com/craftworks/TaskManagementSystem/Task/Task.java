@@ -7,7 +7,7 @@ import java.time.LocalDate;
 @Entity
 @Table
 public class Task {
-    public enum PriorityLevel {LOW,MEDIUM,HIGH}
+    public enum PriorityLevel {LOW, MEDIUM, HIGH}
     public enum Status {NOT_STARTED, IN_PROGRESS, BLOCKED, COMPLETED}
 
     @Id
@@ -21,13 +21,9 @@ public class Task {
             generator = "task_seq"
     )
     private Long id;
-    // TODO: Initialized at the beginning, not susceptible to changes
     private LocalDate createdAt;
-    // TODO: Update together with changes
     private LocalDate updatedAt;
     private LocalDate dueDate;
-
-    // TODO: Update together with status
     private LocalDate resolvedAt;
     private String title;
     private String description;

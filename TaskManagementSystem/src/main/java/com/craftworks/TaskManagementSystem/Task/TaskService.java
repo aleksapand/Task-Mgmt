@@ -31,7 +31,10 @@ public class TaskService {
     }
 
     public void addNewTask(Task task) {
-        // TODO: Check for title duplicate?
+        Optional<Task> taskOptional = taskRepository.findTaskByTitle(task.getTitle());
+        if(taskOptional.isPresent()) {
+            throw new IllegalStateException("Task with title " + task.getTitle() + " already exist");
+        }
         task.setCreatedAt(LocalDate.now());
         task.setStatus(Task.Status.NOT_STARTED);
         taskRepository.save(task);
