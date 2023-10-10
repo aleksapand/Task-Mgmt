@@ -1,6 +1,7 @@
 package com.craftworks.TaskManagementSystem.Task;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,7 @@ import java.util.Random;
 
 @Component
 @EnableScheduling
+@Profile("dev | prod")
 public class TaskGenerationScheduler {
     private final TaskService taskService;
     private Long taskCounter;

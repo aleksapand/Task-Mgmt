@@ -17,13 +17,12 @@ public class TaskController {
     }
 
     @GetMapping
-    public List<Task> getTasks() {
-        // TODO: Take care of ordered list, possibly include "order by"
+    public List<TaskDTO> getTasks() {
         return taskService.getTasks();
     }
 
     @GetMapping(path = "{taskId}")
-    public Task getTask(@PathVariable("taskId") Long taskId)
+    public TaskDTO getTask(@PathVariable("taskId") Long taskId)
     {
         return taskService.getTask(taskId);
     }

@@ -18,18 +18,21 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
-class TaskServiceTest {
+class TaskServiceUnitTest {
 
     @Mock
     private TaskRepository taskRepository;
 
+    private Task task1, task2;
+
+    private final TaskDTOMapper taskDTOMapper = new TaskDTOMapper();
+
     @InjectMocks
     private TaskService taskService;
 
-    private Task task1, task2;
-
     @BeforeEach
     public void setup(){
+        this.taskService = new TaskService(taskRepository, taskDTOMapper);
         task1 = new Task(
                 "First Task",
                 "Task 1 is a test task",
@@ -43,30 +46,33 @@ class TaskServiceTest {
     }
 
     @Test
-    void givenTasks_getTasks() {
-        given(taskRepository.findAll()).willReturn(Arrays.asList(task1, task2));
-        List<Task> tasks = taskService.getTasks();
-        assertEquals(tasks.size(), 2);
+    void test_getTasks() {
+        List<Task> tasks = Arrays.asList(task1, task2);
+        given(taskRepository.findAll()).willReturn(tasks);
+
+        List<TaskDTO> expected = tasks.stream().map(taskDTOMapper).toList();
+        List<TaskDTO> outcome = taskService.getTasks();
+        assertEquals(outcome.size(), expected.size());
+        assertEquals(outcome, expected);
     }
 
     @Test
-    void givenTasks_getTask_second() {
+    void test_getTask_second() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
-        Task task = taskService.getTask(2L);
-        assertEquals(task2.getCreatedAt(), task.getCreatedAt());
+        TaskDTO expected = taskDTOMapper.apply(task2);
+        TaskDTO task = taskService.getTask(2L);
+        assertEquals(expected, task);
     }
 
     @Test
-    void givenTasks_getTask_third() {
+    void test_getTask_NonExisting() {
         given(taskRepository.findById(3L)).willReturn(Optional.empty());
 
-        Assertions.assertThrows(IllegalStateException.class, () -> {
-            taskService.getTask(3L);
-        });
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> taskService.getTask(3L));
     }
 
     @Test
-    void givenTasks_addTask_new() {
+    void test_addTask_new() {
         Task task3 = new Task(
                 "Third Task",
                 "Task 3 is a test task",
@@ -83,39 +89,34 @@ class TaskServiceTest {
     }
 
     @Test
-    void givenTasks_addTask_existing() {
+    void test_addTask_existing() {
         given(taskRepository.findTaskByTitle(task2.getTitle())).willReturn(Optional.of(task2));
-        Assertions.assertThrows(IllegalStateException.class, () -> {
-            taskService.addNewTask(task2);
-        });
+        Assertions.assertThrows(BadArgumentException.class, () -> taskService.addNewTask(task2));
     }
 
     @Test
-    void givenTasks_deleteTask_NonExisting() {
+    void test_deleteTask_NonExisting() {
         given(taskRepository.existsById(3L)).willReturn(false);
-        Assertions.assertThrows(IllegalStateException.class, () -> {
-            taskService.deleteTask(3L);
-        });
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> taskService.deleteTask(3L));
     }
 
     @Test
-    void givenTasks_updateTask_nonExisting() {
+    void test_updateTask_nonExisting() {
         given(taskRepository.findById(3L)).willReturn(Optional.empty());
-        Assertions.assertThrows(IllegalStateException.class, () -> {
-            taskService.updateTask(3L, null, null, null, null, null);
-        });
+        Assertions.assertThrows(ResourceNotFoundException.class, () ->
+                taskService.updateTask(3L, null, null, null, null, null));
 
     }
 
     @Test
-    void givenTasks_updateTask_empty() {
+    void test_updateTask_empty() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
         taskService.updateTask(2L, null, null, null, null, null);
         assertNull(task2.getUpdatedAt());
     }
 
     @Test
-    void givenTasks_updateTask_dueDate() {
+    void test_updateTask_dueDate() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
         taskService.updateTask(2L, LocalDate.now(), null, null, null, null);
         assertTrue(LocalDate.now().isEqual(task2.getDueDate()));
@@ -123,17 +124,16 @@ class TaskServiceTest {
     }
 
     @Test
-    void givenTasks_updateTask_dueDateFalse() {
+    void test_updateTask_dueDateFalse() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
-        Assertions.assertThrows(IllegalStateException.class, () -> {
-            taskService.updateTask(2L, LocalDate.of(2022, Month.DECEMBER, 1), null,
-                    null, null, null);
-        });
+        Assertions.assertThrows(BadArgumentException.class, () ->
+                taskService.updateTask(2L, LocalDate.of(2022, Month.DECEMBER, 1), null,
+                    null, null, null));
         assertNull(task2.getUpdatedAt());
     }
 
     @Test
-    void givenTasks_updateTask_dueDateSameAsCreation() {
+    void test_updateTask_dueDateSameAsCreation() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
         taskService.updateTask(2L, task2.getCreatedAt(), null, null, null, null);
         assertTrue(task2.getCreatedAt().isEqual(task2.getDueDate()));
@@ -141,7 +141,7 @@ class TaskServiceTest {
     }
 
     @Test
-    void givenTasks_updateTask_title() {
+    void test_updateTask_title() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
         taskService.updateTask(2L, null, "Second task edited title", null, null, null);
         assertEquals("Second task edited title", task2.getTitle());
@@ -149,16 +149,15 @@ class TaskServiceTest {
     }
 
     @Test
-    void givenTasks_updateTask_titleEmpty() {
+    void test_updateTask_titleEmpty() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
-        Assertions.assertThrows(IllegalStateException.class, () -> {
-                    taskService.updateTask(2L, null, "", null, null, null);
-                });
+        Assertions.assertThrows(BadArgumentException.class, () ->
+                    taskService.updateTask(2L, null, "", null, null, null));
         assertNull(task2.getUpdatedAt());
     }
 
     @Test
-    void givenTasks_updateTask_description() {
+    void test_updateTask_description() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
         taskService.updateTask(2L, null, null, "New description", null, null);
         assertEquals("New description", task2.getDescription());
@@ -166,7 +165,7 @@ class TaskServiceTest {
     }
 
     @Test
-    void givenTasks_updateTask_priority() {
+    void test_updateTask_priority() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
         taskService.updateTask(2L, null, null, null, Task.PriorityLevel.MEDIUM, null);
         assertEquals(task2.getPriority(),Task.PriorityLevel.MEDIUM);
@@ -174,7 +173,7 @@ class TaskServiceTest {
     }
 
     @Test
-    void givenTasks_updateTask_statusInProgress() {
+    void test_updateTask_statusInProgress() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
         taskService.updateTask(2L, null, null, null, null, Task.Status.IN_PROGRESS);
         assertEquals(task2.getStatus(),Task.Status.IN_PROGRESS);
@@ -183,7 +182,7 @@ class TaskServiceTest {
     }
 
     @Test
-    void givenTasks_updateTask_statusCompleted() {
+    void test_updateTask_statusCompleted() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
         taskService.updateTask(2L, null, null, null, null, Task.Status.COMPLETED);
         assertEquals(task2.getStatus(),Task.Status.COMPLETED);
@@ -192,7 +191,7 @@ class TaskServiceTest {
     }
 
     @Test
-    void givenTasks_updateTask_statusPriority() {
+    void test_updateTask_statusPriority() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
         taskService.updateTask(2L, null, null, null, Task.PriorityLevel.HIGH, Task.Status.COMPLETED);
         assertEquals(task2.getStatus(),Task.Status.COMPLETED);

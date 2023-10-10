@@ -1,31 +1,36 @@
 package com.craftworks.TaskManagementSystem.Task;
 
 import jakarta.transaction.Transactional;
+import org.hibernate.ResourceClosedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.yaml.snakeyaml.util.EnumUtils;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
 
     private final TaskRepository taskRepository;
+    private final TaskDTOMapper taskDTOMapper;
 
     @Autowired
-    public TaskService(TaskRepository taskRepository) {
+    public TaskService(TaskRepository taskRepository, TaskDTOMapper taskDTOMapper) {
         this.taskRepository = taskRepository;
+        this.taskDTOMapper = taskDTOMapper;
     }
 
-    public List<Task> getTasks() {
-        return taskRepository.findAll();
+    public List<TaskDTO> getTasks() {
+        return taskRepository.findAll().stream().map(taskDTOMapper).collect(Collectors.toList());
     }
 
-    public Task getTask(Long taskId) {
-        Optional<Task> task = taskRepository.findById(taskId);
+    public TaskDTO getTask(Long taskId) {
+        Optional<TaskDTO> task = taskRepository.findById(taskId).map(taskDTOMapper);
         if(task.isEmpty()) {
-            throw new IllegalStateException("Task with id " + taskId + " does not exist");
+            throw new ResourceNotFoundException("Task with id " + taskId + " does not exist");
         }
         return task.get();
     }
@@ -33,7 +38,7 @@ public class TaskService {
     public void addNewTask(Task task) {
         Optional<Task> taskOptional = taskRepository.findTaskByTitle(task.getTitle());
         if(taskOptional.isPresent()) {
-            throw new IllegalStateException("Task with title " + task.getTitle() + " already exist");
+            throw new BadArgumentException("Task with title " + task.getTitle() + " already exist");
         }
         task.setCreatedAt(LocalDate.now());
         task.setStatus(Task.Status.NOT_STARTED);
@@ -42,8 +47,7 @@ public class TaskService {
 
     public void deleteTask(Long taskId) {
         if(!taskRepository.existsById(taskId)) {
-            //TODO: Unify repeated error messages
-            throw new IllegalStateException("Task with id " + taskId + " does not exist");
+            throw new ResourceNotFoundException("Task with id " + taskId + " does not exist");
         }
         taskRepository.deleteById(taskId);
     }
@@ -53,26 +57,31 @@ public class TaskService {
     public void updateTask(Long taskId, LocalDate dueDate, String title, String description, Task.PriorityLevel priority, Task.Status status) {
         Optional<Task> optionalTask = taskRepository.findById(taskId);
         if (optionalTask.isEmpty()) {
-            throw new IllegalStateException("Task with id " + taskId + " does not exist");
+            throw new ResourceNotFoundException("Task with id " + taskId + " does not exist");
         }
         Task task = optionalTask.get();
         boolean updated = false;
 
         if(dueDate != null) {
-            if(dueDate.isAfter(task.getCreatedAt()) || dueDate.isEqual(task.getCreatedAt())) {
+            try {
                 task.setDueDate(dueDate);
-                updated = true;
-            } else {
-                throw new IllegalStateException("Invalid due date. Due date before creation time.");
+            } catch (IllegalArgumentException e) {
+                throw new BadArgumentException(e.getMessage());
             }
+            updated = true;
         }
         if(title != null) {
-            if(!title.isEmpty()) {
-                task.setTitle(title);
-                updated = true;
-            } else {
-                throw new IllegalStateException("Invalid due date. Due date before creation time.");
+            Optional<Task> taskOptional = taskRepository.findTaskByTitle(title);
+            if(taskOptional.isPresent()) {
+                throw new BadArgumentException("Task with title " + task.getTitle() + " already exist");
             }
+            try {
+                task.setTitle(title);
+            }
+            catch (IllegalArgumentException e) {
+                throw new BadArgumentException(e.getMessage());
+            }
+            updated = true;
         }
         if(description != null) {
             task.setDescription(description);
@@ -84,9 +93,6 @@ public class TaskService {
         }
         if(status != null) {
             task.setStatus(status);
-            if (status == Task.Status.COMPLETED) {
-                task.setResolvedAt(LocalDate.now());
-            }
             updated = true;
         }
         if (updated) {

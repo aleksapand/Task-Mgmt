@@ -21,14 +21,22 @@ public class Task {
             generator = "task_seq"
     )
     private Long id;
+    @Column
     private LocalDate createdAt;
+    @Column
     private LocalDate updatedAt;
+    @Column
     private LocalDate dueDate;
+    @Column
     private LocalDate resolvedAt;
+    @Column
     private String title;
+    @Column
     private String description;
+    @Column
     @Enumerated(EnumType.STRING)
     private PriorityLevel priority;
+    @Column
     @Enumerated(EnumType.STRING)
     private Status status;
 
@@ -70,6 +78,9 @@ public class Task {
     }
 
     public void setDueDate(LocalDate dueDate) {
+        if(dueDate.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Invalid due date. Due date before creation time.");
+        }
         this.dueDate = dueDate;
     }
 
@@ -81,11 +92,12 @@ public class Task {
         this.resolvedAt = resolvedAt;
     }
 
-    public String getTitle() {
-        return title;
-    }
+    public String getTitle() { return title; }
 
     public void setTitle(String title) {
+        if(title.isEmpty()) {
+            throw new IllegalArgumentException("Invalid title. Title cannot be empty.");
+        }
         this.title = title;
     }
 
@@ -110,6 +122,9 @@ public class Task {
     }
 
     public void setStatus(Status status) {
+        if (status == Task.Status.COMPLETED) {
+            this.setResolvedAt(LocalDate.now());
+        }
         this.status = status;
     }
 
