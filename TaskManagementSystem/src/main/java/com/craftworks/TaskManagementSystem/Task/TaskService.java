@@ -1,10 +1,8 @@
 package com.craftworks.TaskManagementSystem.Task;
 
 import jakarta.transaction.Transactional;
-import org.hibernate.ResourceClosedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.yaml.snakeyaml.util.EnumUtils;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -29,24 +27,24 @@ public class TaskService {
 
     public TaskDTO getTask(Long taskId) {
         Optional<TaskDTO> task = taskRepository.findById(taskId).map(taskDTOMapper);
-        if(task.isEmpty()) {
+        if (task.isEmpty()) {
             throw new ResourceNotFoundException("Task with id " + taskId + " does not exist");
         }
         return task.get();
     }
 
-    public void addNewTask(Task task) {
+    public Long addNewTask(Task task) {
         Optional<Task> taskOptional = taskRepository.findTaskByTitle(task.getTitle());
-        if(taskOptional.isPresent()) {
+        if (taskOptional.isPresent()) {
             throw new BadArgumentException("Task with title " + task.getTitle() + " already exist");
         }
         task.setCreatedAt(LocalDate.now());
         task.setStatus(Task.Status.NOT_STARTED);
-        taskRepository.save(task);
+        return taskRepository.save(task).getId();
     }
 
     public void deleteTask(Long taskId) {
-        if(!taskRepository.existsById(taskId)) {
+        if (!taskRepository.existsById(taskId)) {
             throw new ResourceNotFoundException("Task with id " + taskId + " does not exist");
         }
         taskRepository.deleteById(taskId);
@@ -62,7 +60,7 @@ public class TaskService {
         Task task = optionalTask.get();
         boolean updated = false;
 
-        if(dueDate != null) {
+        if (dueDate != null) {
             try {
                 task.setDueDate(dueDate);
             } catch (IllegalArgumentException e) {
@@ -70,28 +68,27 @@ public class TaskService {
             }
             updated = true;
         }
-        if(title != null) {
+        if (title != null) {
             Optional<Task> taskOptional = taskRepository.findTaskByTitle(title);
-            if(taskOptional.isPresent()) {
+            if (taskOptional.isPresent()) {
                 throw new BadArgumentException("Task with title " + task.getTitle() + " already exist");
             }
             try {
                 task.setTitle(title);
-            }
-            catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException e) {
                 throw new BadArgumentException(e.getMessage());
             }
             updated = true;
         }
-        if(description != null) {
+        if (description != null) {
             task.setDescription(description);
             updated = true;
         }
-        if(priority != null) {
+        if (priority != null) {
             task.setPriority(priority);
             updated = true;
         }
-        if(status != null) {
+        if (status != null) {
             task.setStatus(status);
             updated = true;
         }

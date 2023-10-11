@@ -1,0 +1,29 @@
+version: '2'
+services:
+  app:
+    image: 'docker-spring-boot-postgres:latest'
+    build:
+      context: .
+    container_name: app
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/task_mgmt
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=unsafe_password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=create-drop
+      - SCHEDULER_DELAY=10000
+    ports:
+      - 127.0.0.1:8080:8080
+
+  db:
+    image: postgres:15
+    volumes:
+      - sample_db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=unsafe_password
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=task_mgmt
+      - PGDATA=/var/lib/postgresql/data/pgdata
+volumes:
+  sample_db: {}

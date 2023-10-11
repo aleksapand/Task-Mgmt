@@ -31,7 +31,7 @@ class TaskServiceUnitTest {
     private TaskService taskService;
 
     @BeforeEach
-    public void setup(){
+    public void setup() {
         this.taskService = new TaskService(taskRepository, taskDTOMapper);
         task1 = new Task(
                 "First Task",
@@ -82,6 +82,7 @@ class TaskServiceUnitTest {
         task3.setCreatedAt(LocalDate.of(2023, Month.NOVEMBER, 27));
 
         given(taskRepository.findTaskByTitle(task3.getTitle())).willReturn(Optional.empty());
+        given(taskRepository.save(task3)).willReturn(task3);
         taskService.addNewTask(task3);
 
         assertEquals(Task.Status.NOT_STARTED, task3.getStatus());
@@ -128,7 +129,7 @@ class TaskServiceUnitTest {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
         Assertions.assertThrows(BadArgumentException.class, () ->
                 taskService.updateTask(2L, LocalDate.of(2022, Month.DECEMBER, 1), null,
-                    null, null, null));
+                        null, null, null));
         assertNull(task2.getUpdatedAt());
     }
 
@@ -152,7 +153,7 @@ class TaskServiceUnitTest {
     void test_updateTask_titleEmpty() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
         Assertions.assertThrows(BadArgumentException.class, () ->
-                    taskService.updateTask(2L, null, "", null, null, null));
+                taskService.updateTask(2L, null, "", null, null, null));
         assertNull(task2.getUpdatedAt());
     }
 
@@ -168,7 +169,7 @@ class TaskServiceUnitTest {
     void test_updateTask_priority() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
         taskService.updateTask(2L, null, null, null, Task.PriorityLevel.MEDIUM, null);
-        assertEquals(task2.getPriority(),Task.PriorityLevel.MEDIUM);
+        assertEquals(task2.getPriority(), Task.PriorityLevel.MEDIUM);
         assertTrue(LocalDate.now().isEqual(task2.getUpdatedAt()));
     }
 
@@ -176,7 +177,7 @@ class TaskServiceUnitTest {
     void test_updateTask_statusInProgress() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
         taskService.updateTask(2L, null, null, null, null, Task.Status.IN_PROGRESS);
-        assertEquals(task2.getStatus(),Task.Status.IN_PROGRESS);
+        assertEquals(task2.getStatus(), Task.Status.IN_PROGRESS);
         assertTrue(LocalDate.now().isEqual(task2.getUpdatedAt()));
         assertNull(task2.getResolvedAt());
     }
@@ -185,7 +186,7 @@ class TaskServiceUnitTest {
     void test_updateTask_statusCompleted() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
         taskService.updateTask(2L, null, null, null, null, Task.Status.COMPLETED);
-        assertEquals(task2.getStatus(),Task.Status.COMPLETED);
+        assertEquals(task2.getStatus(), Task.Status.COMPLETED);
         assertTrue(LocalDate.now().isEqual(task2.getUpdatedAt()));
         assertTrue(LocalDate.now().isEqual(task2.getResolvedAt()));
     }
@@ -194,8 +195,8 @@ class TaskServiceUnitTest {
     void test_updateTask_statusPriority() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
         taskService.updateTask(2L, null, null, null, Task.PriorityLevel.HIGH, Task.Status.COMPLETED);
-        assertEquals(task2.getStatus(),Task.Status.COMPLETED);
-        assertEquals(task2.getPriority(),Task.PriorityLevel.HIGH);
+        assertEquals(task2.getStatus(), Task.Status.COMPLETED);
+        assertEquals(task2.getPriority(), Task.PriorityLevel.HIGH);
         assertTrue(LocalDate.now().isEqual(task2.getUpdatedAt()));
         assertTrue(LocalDate.now().isEqual(task2.getResolvedAt()));
     }

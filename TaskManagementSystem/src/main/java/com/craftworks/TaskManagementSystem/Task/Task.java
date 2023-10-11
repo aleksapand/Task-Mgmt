@@ -8,6 +8,7 @@ import java.time.LocalDate;
 @Table
 public class Task {
     public enum PriorityLevel {LOW, MEDIUM, HIGH}
+
     public enum Status {NOT_STARTED, IN_PROGRESS, BLOCKED, COMPLETED}
 
     @Id
@@ -49,6 +50,7 @@ public class Task {
         this.createdAt = LocalDate.now();
         this.status = Status.NOT_STARTED;
     }
+
     public Task() {
 
     }
@@ -78,7 +80,7 @@ public class Task {
     }
 
     public void setDueDate(LocalDate dueDate) {
-        if(dueDate.isBefore(LocalDate.now())) {
+        if (dueDate.isBefore(LocalDate.now())) {
             throw new IllegalArgumentException("Invalid due date. Due date before creation time.");
         }
         this.dueDate = dueDate;
@@ -92,10 +94,12 @@ public class Task {
         this.resolvedAt = resolvedAt;
     }
 
-    public String getTitle() { return title; }
+    public String getTitle() {
+        return title;
+    }
 
     public void setTitle(String title) {
-        if(title.isEmpty()) {
+        if (title.isEmpty()) {
             throw new IllegalArgumentException("Invalid title. Title cannot be empty.");
         }
         this.title = title;

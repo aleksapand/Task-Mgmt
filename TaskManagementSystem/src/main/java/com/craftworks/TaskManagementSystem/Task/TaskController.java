@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping(path="api/tasks")
+@RequestMapping(path = "api/tasks")
 public class TaskController {
     private final TaskService taskService;
 
@@ -22,14 +22,13 @@ public class TaskController {
     }
 
     @GetMapping(path = "{taskId}")
-    public TaskDTO getTask(@PathVariable("taskId") Long taskId)
-    {
+    public TaskDTO getTask(@PathVariable("taskId") Long taskId) {
         return taskService.getTask(taskId);
     }
 
     @PostMapping
-    public void addNewTask(@RequestBody Task task) {
-        taskService.addNewTask(task);
+    public Long addNewTask(@RequestBody Task task) {
+        return taskService.addNewTask(task);
     }
 
     @DeleteMapping(path = "{taskId}")

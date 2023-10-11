@@ -26,8 +26,7 @@ public class TaskGenerationScheduler {
     }
 
     @Scheduled(fixedDelayString = "${scheduler.delay}")
-    public void generateNewTask()
-    {
+    public void generateNewTask() {
         this.taskCounter += 1;
         Task task = new Task(
                 "Task " + taskCounter,
