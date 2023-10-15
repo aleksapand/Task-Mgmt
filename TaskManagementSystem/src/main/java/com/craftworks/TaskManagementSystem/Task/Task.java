@@ -1,6 +1,10 @@
 package com.craftworks.TaskManagementSystem.Task;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -8,6 +12,10 @@ import java.time.LocalDate;
 
 @Entity
 @Table
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
 public class Task {
     public enum PriorityLevel {LOW, MEDIUM, HIGH}
 
@@ -48,29 +56,7 @@ public class Task {
         this.description = description;
         this.priority = priority;
         this.dueDate = dueDate;
-
         this.status = Status.NOT_STARTED;
-    }
-
-    public Task() {
-
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public LocalDate getCreatedAt() {
-        return createdAt;
-    }
-
-    public LocalDate getUpdatedAt() {
-        return updatedAt;
-    }
-
-
-    public LocalDate getDueDate() {
-        return dueDate;
     }
 
     public void setDueDate(LocalDate dueDate) {
@@ -80,18 +66,6 @@ public class Task {
         this.dueDate = dueDate;
     }
 
-    public LocalDate getResolvedAt() {
-        return resolvedAt;
-    }
-
-    public void setResolvedAt(LocalDate resolvedAt) {
-        this.resolvedAt = resolvedAt;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
     public void setTitle(String title) {
         if (title.isEmpty()) {
             throw new IllegalArgumentException("Invalid title. Title cannot be empty.");
@@ -99,45 +73,10 @@ public class Task {
         this.title = title;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public PriorityLevel getPriority() {
-        return priority;
-    }
-
-    public void setPriority(PriorityLevel priority) {
-        this.priority = priority;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
     public void setStatus(Status status) {
         if (status == Task.Status.COMPLETED) {
             this.setResolvedAt(LocalDate.now());
         }
         this.status = status;
-    }
-
-    @Override
-    public String toString() {
-        return "Task{" +
-                "id=" + id +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                ", dueDate=" + dueDate +
-                ", resolvedAt=" + resolvedAt +
-                ", title='" + title + '\'' +
-                ", description='" + description + '\'' +
-                ", priority='" + priority + '\'' +
-                ", status='" + status + '\'' +
-                '}';
     }
 }
