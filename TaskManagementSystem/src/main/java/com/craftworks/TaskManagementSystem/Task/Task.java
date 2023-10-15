@@ -1,6 +1,7 @@
 package com.craftworks.TaskManagementSystem.Task;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,6 +45,7 @@ public class Task {
     private LocalDate resolvedAt;
     @Column
     @NotNull
+    @NotBlank
     private String title;
     @Column
     @NotNull
