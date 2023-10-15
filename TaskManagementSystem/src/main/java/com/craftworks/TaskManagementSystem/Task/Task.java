@@ -1,6 +1,8 @@
 package com.craftworks.TaskManagementSystem.Task;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 
@@ -22,9 +24,9 @@ public class Task {
             generator = "task_seq"
     )
     private Long id;
-    @Column
+    @CreationTimestamp
     private LocalDate createdAt;
-    @Column
+    @UpdateTimestamp
     private LocalDate updatedAt;
     @Column
     private LocalDate dueDate;
@@ -47,7 +49,6 @@ public class Task {
         this.priority = priority;
         this.dueDate = dueDate;
 
-        this.createdAt = LocalDate.now();
         this.status = Status.NOT_STARTED;
     }
 
@@ -63,17 +64,10 @@ public class Task {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDate createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public LocalDate getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(LocalDate updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 
     public LocalDate getDueDate() {
         return dueDate;

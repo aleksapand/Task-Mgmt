@@ -38,7 +38,6 @@ public class TaskService {
         if (taskOptional.isPresent()) {
             throw new BadArgumentException("Task with title " + task.getTitle() + " already exist");
         }
-        task.setCreatedAt(LocalDate.now());
         task.setStatus(Task.Status.NOT_STARTED);
         return taskRepository.save(task).getId();
     }
@@ -58,7 +57,6 @@ public class TaskService {
             throw new ResourceNotFoundException("Task with id " + taskId + " does not exist");
         }
         Task task = optionalTask.get();
-        boolean updated = false;
 
         if (dueDate != null) {
             try {
@@ -66,7 +64,6 @@ public class TaskService {
             } catch (IllegalArgumentException e) {
                 throw new BadArgumentException(e.getMessage());
             }
-            updated = true;
         }
         if (title != null) {
             Optional<Task> taskOptional = taskRepository.findTaskByTitle(title);
@@ -78,22 +75,15 @@ public class TaskService {
             } catch (IllegalArgumentException e) {
                 throw new BadArgumentException(e.getMessage());
             }
-            updated = true;
         }
         if (description != null) {
             task.setDescription(description);
-            updated = true;
         }
         if (priority != null) {
             task.setPriority(priority);
-            updated = true;
         }
         if (status != null) {
             task.setStatus(status);
-            updated = true;
-        }
-        if (updated) {
-            task.setUpdatedAt(LocalDate.now());
         }
     }
 }
