@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,7 +62,9 @@ public class TaskService {
         if (title != null) {
             taskRepository.findTaskByTitle(title).ifPresent(
                     t -> {
-                        throw new BadArgumentException("Task with title " + title + " already exist");
+                        if (!Objects.equals(t.getId(), taskId)) {
+                            throw new BadArgumentException("Task with title " + title + " already exist");
+                        }
                     });
             try {
                 task.setTitle(title);

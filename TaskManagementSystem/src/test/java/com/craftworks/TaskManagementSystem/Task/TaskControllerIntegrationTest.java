@@ -201,7 +201,7 @@ public class TaskControllerIntegrationTest {
     public void test_updateTasks_existingTitle() throws Exception {
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .put("/api/tasks/2")
+                        .put("/api/tasks/3")
                         .queryParam("title", "New Title"))
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof BadArgumentException));
     }
@@ -308,5 +308,15 @@ public class TaskControllerIntegrationTest {
                         .content(body)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Order(16)
+    public void test_updateTasks_sameTaskSameTitle() throws Exception {
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .put("/api/tasks/2")
+                        .queryParam("title", "New Title"))
+                .andExpect(status().isOk());
     }
 }
