@@ -49,14 +49,13 @@ public class Task {
     private PriorityLevel priority;
     @Column
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private Status status = Status.NOT_STARTED;
 
     public Task(String title, String description, PriorityLevel priority, LocalDate dueDate) {
         this.title = title;
         this.description = description;
         this.priority = priority;
         this.dueDate = dueDate;
-        this.status = Status.NOT_STARTED;
     }
 
     public void setDueDate(LocalDate dueDate) {

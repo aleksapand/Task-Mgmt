@@ -84,7 +84,7 @@ class TaskServiceUnitTest {
         given(taskRepository.save(task3)).willReturn(task3);
         taskService.addNewTask(task3);
 
-        assertEquals(Task.Status.NOT_STARTED, task3.getStatus());
+        assertEquals(Task.Status.IN_PROGRESS, task3.getStatus());
     }
 
     @Test

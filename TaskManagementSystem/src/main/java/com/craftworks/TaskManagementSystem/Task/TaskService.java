@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,19 +25,15 @@ public class TaskService {
     }
 
     public TaskDTO getTask(Long taskId) {
-        Optional<TaskDTO> task = taskRepository.findById(taskId).map(taskDTOMapper);
-        if (task.isEmpty()) {
-            throw new ResourceNotFoundException("Task with id " + taskId + " does not exist");
-        }
-        return task.get();
+        return taskRepository.findById(taskId).map(taskDTOMapper).orElseThrow(() ->
+                new ResourceNotFoundException("Task with id " + taskId + " does not exist"));
     }
 
     public Long addNewTask(Task task) {
-        Optional<Task> taskOptional = taskRepository.findTaskByTitle(task.getTitle());
-        if (taskOptional.isPresent()) {
-            throw new BadArgumentException("Task with title " + task.getTitle() + " already exist");
-        }
-        task.setStatus(Task.Status.NOT_STARTED);
+        taskRepository.findTaskByTitle(task.getTitle()).ifPresent(
+                t -> {throw new BadArgumentException("Task with title " + task.getTitle() + " already exist");}
+        );
+
         return taskRepository.save(task).getId();
     }
 
@@ -52,11 +47,8 @@ public class TaskService {
 
     @Transactional(rollbackOn = Exception.class)
     public void updateTask(Long taskId, LocalDate dueDate, String title, String description, Task.PriorityLevel priority, Task.Status status) {
-        Optional<Task> optionalTask = taskRepository.findById(taskId);
-        if (optionalTask.isEmpty()) {
-            throw new ResourceNotFoundException("Task with id " + taskId + " does not exist");
-        }
-        Task task = optionalTask.get();
+        Task task = taskRepository.findById(taskId).orElseThrow(() ->
+                new ResourceNotFoundException("Task with id " + taskId + " does not exist"));
 
         if (dueDate != null) {
             try {
@@ -66,10 +58,8 @@ public class TaskService {
             }
         }
         if (title != null) {
-            Optional<Task> taskOptional = taskRepository.findTaskByTitle(title);
-            if (taskOptional.isPresent()) {
-                throw new BadArgumentException("Task with title " + task.getTitle() + " already exist");
-            }
+            taskRepository.findTaskByTitle(title).ifPresent(
+                    t -> { throw new BadArgumentException("Task with title " + title + " already exist");});
             try {
                 task.setTitle(title);
             } catch (IllegalArgumentException e) {
