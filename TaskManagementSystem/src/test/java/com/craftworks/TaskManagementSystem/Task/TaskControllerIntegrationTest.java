@@ -291,4 +291,24 @@ public class TaskControllerIntegrationTest {
         assertEquals(LocalDate.now().toString(), responseJson.get("resolvedAt"));
     }
 
+    @Test
+    @Order(15)
+    public void test_addNewTask_null() throws Exception {
+        String body = """ 
+                { \n
+                "title": "", \n
+                "description": "This is third test task", \n
+                "priority": "HIGH", \n
+                "dueDate": "2020-03-01" \n
+                }""";
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+
 }

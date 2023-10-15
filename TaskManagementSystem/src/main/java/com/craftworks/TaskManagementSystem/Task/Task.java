@@ -1,6 +1,7 @@
 package com.craftworks.TaskManagementSystem.Task;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -37,17 +38,22 @@ public class Task {
     @UpdateTimestamp
     private LocalDate updatedAt;
     @Column
+    @NotNull
     private LocalDate dueDate;
     @Column
     private LocalDate resolvedAt;
     @Column
+    @NotNull
     private String title;
     @Column
+    @NotNull
     private String description;
     @Column
+    @NotNull
     @Enumerated(EnumType.STRING)
     private PriorityLevel priority;
     @Column
+    @NotNull
     @Enumerated(EnumType.STRING)
     private Status status = Status.NOT_STARTED;
 

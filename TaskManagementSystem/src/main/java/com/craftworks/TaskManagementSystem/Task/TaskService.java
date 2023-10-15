@@ -31,9 +31,10 @@ public class TaskService {
 
     public Long addNewTask(Task task) {
         taskRepository.findTaskByTitle(task.getTitle()).ifPresent(
-                t -> {throw new BadArgumentException("Task with title " + task.getTitle() + " already exist");}
+                t -> {
+                    throw new BadArgumentException("Task with title " + task.getTitle() + " already exist");
+                }
         );
-
         return taskRepository.save(task).getId();
     }
 
@@ -59,7 +60,9 @@ public class TaskService {
         }
         if (title != null) {
             taskRepository.findTaskByTitle(title).ifPresent(
-                    t -> { throw new BadArgumentException("Task with title " + title + " already exist");});
+                    t -> {
+                        throw new BadArgumentException("Task with title " + title + " already exist");
+                    });
             try {
                 task.setTitle(title);
             } catch (IllegalArgumentException e) {
