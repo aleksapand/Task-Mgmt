@@ -17,8 +17,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.time.LocalDate;
 import java.time.Month;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -260,7 +259,7 @@ public class TaskControllerIntegrationTest {
                 "title": "New Title", \n
                 "description": "This is third test task", \n
                 "priority": "HIGH", \n
-                "dueDate": "2020-03-01" \n
+                "dueDate": "2024-03-01" \n
                 }""";
         mockMvc.perform(MockMvcRequestBuilders
                         .post("/api/tasks")
@@ -299,7 +298,7 @@ public class TaskControllerIntegrationTest {
                 "title": "", \n
                 "description": "This is third test task", \n
                 "priority": "HIGH", \n
-                "dueDate": "2020-03-01" \n
+                "dueDate": "2024-03-01" \n
                 }""";
 
         mockMvc.perform(MockMvcRequestBuilders
@@ -318,5 +317,29 @@ public class TaskControllerIntegrationTest {
                         .put("/api/tasks/2")
                         .queryParam("title", "New Title"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @Order(17)
+    public void test_addNewTask_existingId() throws Exception {
+        String body = """ 
+                { \n
+                "id": "1", \n
+                "title": "Example Task renewed", \n
+                "description": "This is third test task", \n
+                "priority": "HIGH", \n
+                "dueDate": "2024-03-01" \n
+                }""";
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                        .post("/api/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()).andReturn();
+
+        long newTaskId = Long.parseLong(result.getResponse().getContentAsString());
+        assertNotEquals(1, newTaskId);
+
     }
 }

@@ -1,5 +1,6 @@
 package com.craftworks.TaskManagementSystem.Task;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -18,20 +19,15 @@ import java.time.LocalDate;
 @Setter
 @ToString
 @NoArgsConstructor
+@JsonIgnoreProperties("id")
 public class Task {
     public enum PriorityLevel {LOW, MEDIUM, HIGH}
 
     public enum Status {NOT_STARTED, IN_PROGRESS, BLOCKED, COMPLETED}
 
     @Id
-    @SequenceGenerator(
-            name = "task_seq",
-            sequenceName = "task_seq",
-            allocationSize = 1
-    )
     @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "task_seq"
+            strategy = GenerationType.IDENTITY
     )
     private Long id;
     @CreationTimestamp
