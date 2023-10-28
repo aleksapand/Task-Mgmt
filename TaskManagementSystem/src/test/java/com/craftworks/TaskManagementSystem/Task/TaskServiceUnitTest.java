@@ -8,8 +8,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
-import java.time.Month;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +26,8 @@ class TaskServiceUnitTest {
 
     private Task task1, task2;
 
+    private final LocalDateTime dueDate = LocalDateTime.now().plusMonths(1).truncatedTo(ChronoUnit.MINUTES);
+
     private final TaskDTOMapper taskDTOMapper = new TaskDTOMapper();
 
     @InjectMocks
@@ -33,16 +36,8 @@ class TaskServiceUnitTest {
     @BeforeEach
     public void setup() {
         this.taskService = new TaskService(taskRepository, taskDTOMapper);
-        task1 = new Task(
-                "First Task",
-                "Task 1 is a test task",
-                Task.PriorityLevel.LOW,
-                LocalDate.of(2023, Month.DECEMBER, 1));
-        task2 = new Task(
-                "Second Task",
-                "Task 2 is a test task",
-                Task.PriorityLevel.LOW,
-                LocalDate.of(2023, Month.DECEMBER, 2));
+        task1 = new Task("First Task", "Task 1 is a test task", Task.PriorityLevel.LOW, dueDate);
+        task2 = new Task("Second Task", "Task 2 is a test task", Task.PriorityLevel.LOW, dueDate.plusDays(1));
     }
 
     @Test
@@ -73,11 +68,7 @@ class TaskServiceUnitTest {
 
     @Test
     void test_addTask_new() {
-        Task task3 = new Task(
-                "Third Task",
-                "Task 3 is a test task",
-                Task.PriorityLevel.LOW,
-                LocalDate.of(2023, Month.DECEMBER, 2));
+        Task task3 = new Task("Third Task", "Task 3 is a test task", Task.PriorityLevel.LOW, dueDate);
         task3.setStatus(Task.Status.IN_PROGRESS);
 
         given(taskRepository.findTaskByTitle(task3.getTitle())).willReturn(Optional.empty());
@@ -102,8 +93,7 @@ class TaskServiceUnitTest {
     @Test
     void test_updateTask_nonExisting() {
         given(taskRepository.findById(3L)).willReturn(Optional.empty());
-        Assertions.assertThrows(ResourceNotFoundException.class, () ->
-                taskService.updateTask(3L, null, null, null, null, null));
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> taskService.updateTask(3L, null, null, null, null, null));
 
     }
 
@@ -117,16 +107,14 @@ class TaskServiceUnitTest {
     @Test
     void test_updateTask_dueDate() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
-        taskService.updateTask(2L, LocalDate.now(), null, null, null, null);
-        assertTrue(LocalDate.now().isEqual(task2.getDueDate()));
+        taskService.updateTask(2L, dueDate.plusMonths(1), null, null, null, null);
+        assertEquals(dueDate.plusMonths(1), task2.getDueDate());
     }
 
     @Test
     void test_updateTask_dueDateFalse() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
-        Assertions.assertThrows(BadArgumentException.class, () ->
-                taskService.updateTask(2L, LocalDate.of(2022, Month.DECEMBER, 1), null,
-                        null, null, null));
+        Assertions.assertThrows(BadArgumentException.class, () -> taskService.updateTask(2L, dueDate.minusMonths(3), null, null, null, null));
         assertNull(task2.getUpdatedAt());
     }
 
@@ -140,8 +128,7 @@ class TaskServiceUnitTest {
     @Test
     void test_updateTask_titleEmpty() {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
-        Assertions.assertThrows(BadArgumentException.class, () ->
-                taskService.updateTask(2L, null, "", null, null, null));
+        Assertions.assertThrows(BadArgumentException.class, () -> taskService.updateTask(2L, null, "", null, null, null));
         assertNull(task2.getUpdatedAt());
     }
 
@@ -172,7 +159,8 @@ class TaskServiceUnitTest {
         given(taskRepository.findById(2L)).willReturn(Optional.of(task2));
         taskService.updateTask(2L, null, null, null, null, Task.Status.COMPLETED);
         assertEquals(task2.getStatus(), Task.Status.COMPLETED);
-        assertTrue(LocalDate.now().isEqual(task2.getResolvedAt()));
+        long diff = Duration.between(LocalDateTime.now(), task2.getResolvedAt()).toMinutes();
+        assertTrue(diff <= 1);
     }
 
     @Test
@@ -181,6 +169,7 @@ class TaskServiceUnitTest {
         taskService.updateTask(2L, null, null, null, Task.PriorityLevel.HIGH, Task.Status.COMPLETED);
         assertEquals(task2.getStatus(), Task.Status.COMPLETED);
         assertEquals(task2.getPriority(), Task.PriorityLevel.HIGH);
-        assertTrue(LocalDate.now().isEqual(task2.getResolvedAt()));
+        long diff = Duration.between(LocalDateTime.now(), task2.getResolvedAt()).toMinutes();
+        assertTrue(diff <= 1);
     }
 }

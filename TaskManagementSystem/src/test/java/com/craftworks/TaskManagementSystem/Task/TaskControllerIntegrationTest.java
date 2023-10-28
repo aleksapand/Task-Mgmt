@@ -14,8 +14,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.time.LocalDate;
-import java.time.Month;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -30,14 +31,21 @@ public class TaskControllerIntegrationTest {
     private final MockMvc mockMvc;
     private final Task exampleTask;
 
+    private final LocalDateTime dueDate;
+
+    private final long MinutesElapsedSinceCreated;
+
     @Autowired
     public TaskControllerIntegrationTest(MockMvc mockMvc) {
         this.mockMvc = mockMvc;
+
+        this.dueDate = LocalDateTime.now().plusMonths(1).truncatedTo(ChronoUnit.MINUTES);
+        this.MinutesElapsedSinceCreated = 2;
         this.exampleTask = new Task(
                 "Example Task",
                 "Example Task is a test task",
                 Task.PriorityLevel.LOW,
-                LocalDate.of(2023, Month.DECEMBER, 2));
+                dueDate);
     }
 
     private String getNewTaskBody(Task task) {
@@ -105,9 +113,8 @@ public class TaskControllerIntegrationTest {
         assertEquals("Example Task is a test task", task2Json.get("description"));
         assertEquals("LOW", task1Json.get("priority"));
         assertEquals("LOW", task2Json.get("priority"));
-        assertEquals("2023-12-02", task1Json.get("dueDate"));
-        assertEquals("2023-12-02", task2Json.get("dueDate"));
-
+        assertEquals(this.dueDate, LocalDateTime.parse(task1Json.get("dueDate").toString()).truncatedTo(ChronoUnit.MINUTES));
+        assertEquals(this.dueDate, LocalDateTime.parse(task2Json.get("dueDate").toString()).truncatedTo(ChronoUnit.MINUTES));
     }
 
     @Test
@@ -126,8 +133,9 @@ public class TaskControllerIntegrationTest {
         assertEquals("Second Example Task", responseJson.get("title"));
         assertEquals("Example Task is a test task", responseJson.get("description"));
         assertEquals("LOW", responseJson.get("priority"));
-        assertEquals("2023-12-02", responseJson.get("dueDate"));
-        assertEquals(LocalDate.now().toString(), responseJson.get("createdAt"));
+        assertEquals(this.dueDate, LocalDateTime.parse(responseJson.get("dueDate").toString()).truncatedTo(ChronoUnit.MINUTES));
+        long diff = Duration.between(LocalDateTime.now(), LocalDateTime.parse(responseJson.get("createdAt").toString())).toMinutes();
+        assertTrue(diff <= this.MinutesElapsedSinceCreated);
         assertEquals("NOT_STARTED", responseJson.get("status"));
     }
 
@@ -168,7 +176,7 @@ public class TaskControllerIntegrationTest {
                         .queryParam("title", "New Title")
                         .queryParam("description", "New description")
                         .queryParam("priority", "MEDIUM")
-                        .queryParam("dueDate", "2023-11-27"))
+                        .queryParam("dueDate", this.dueDate.plusDays(2).toString()))
                 .andExpect(status().isOk());
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders
@@ -182,7 +190,9 @@ public class TaskControllerIntegrationTest {
         assertEquals("New Title", responseJson.get("title"));
         assertEquals("New description", responseJson.get("description"));
         assertEquals("MEDIUM", responseJson.get("priority"));
-        assertEquals("2023-11-27", responseJson.get("dueDate"));
+        assertEquals(this.dueDate.plusDays(2), LocalDateTime.parse(responseJson.get("dueDate").toString()).truncatedTo(ChronoUnit.MINUTES));
+        long diff = Duration.between(LocalDateTime.now(), LocalDateTime.parse(responseJson.get("updatedAt").toString())).toMinutes();
+        assertTrue(diff <= 1);
     }
 
     @Test
@@ -211,7 +221,7 @@ public class TaskControllerIntegrationTest {
 
         mockMvc.perform(MockMvcRequestBuilders
                         .put("/api/tasks/2")
-                        .queryParam("dueDate", LocalDate.of(2020, Month.DECEMBER, 1).toString()))
+                        .queryParam("dueDate", this.dueDate.minusMonths(2).toString()))
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof BadArgumentException));
     }
 
@@ -287,7 +297,8 @@ public class TaskControllerIntegrationTest {
         String responseStr = result.getResponse().getContentAsString();
         JSONObject responseJson = new JSONObject(responseStr);
         assertEquals("COMPLETED", responseJson.get("status"));
-        assertEquals(LocalDate.now().toString(), responseJson.get("resolvedAt"));
+        long diff = Duration.between(LocalDateTime.now(), LocalDateTime.parse(responseJson.get("resolvedAt").toString())).toMinutes();
+        assertTrue(diff <= 1);
     }
 
     @Test
@@ -328,7 +339,7 @@ public class TaskControllerIntegrationTest {
                 "title": "Example Task renewed", \n
                 "description": "This is third test task", \n
                 "priority": "HIGH", \n
-                "dueDate": "2024-03-01" \n
+                "dueDate": "2024-03-01T05:05" \n
                 }""";
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders

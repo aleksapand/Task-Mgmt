@@ -3,7 +3,7 @@ package com.craftworks.TaskManagementSystem.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -39,7 +39,7 @@ public class TaskController {
     @PutMapping(path = "{taskId}")
     public void updateTask(
             @PathVariable("taskId") Long taskId,
-            @RequestParam(required = false) LocalDate dueDate,
+            @RequestParam(required = false) LocalDateTime dueDate,
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String description,
             @RequestParam(required = false) Task.PriorityLevel priority,

@@ -6,7 +6,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.Random;
 
@@ -32,7 +32,7 @@ public class TaskGenerationScheduler {
                 "Task " + taskCounter,
                 "Task " + taskCounter + " is a test task",
                 Task.PriorityLevel.values()[RANDOM.nextInt(priorityLen)],
-                LocalDate.of(2023, Month.DECEMBER, 1));
+                LocalDateTime.of(2023, Month.DECEMBER, 1, 5, 5));
 
         this.taskService.addNewTask(task);
     }

@@ -1,13 +1,13 @@
 package com.craftworks.TaskManagementSystem.Task;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record TaskDTO(
         Long id,
-        LocalDate createdAt,
-        LocalDate updatedAt,
-        LocalDate dueDate,
-        LocalDate resolvedAt,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
+        LocalDateTime dueDate,
+        LocalDateTime resolvedAt,
         String title,
         String description,
         Task.PriorityLevel priority,

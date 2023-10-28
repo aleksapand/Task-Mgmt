@@ -11,7 +11,7 @@ import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table
@@ -31,14 +31,14 @@ public class Task {
     )
     private Long id;
     @CreationTimestamp
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
     @UpdateTimestamp
-    private LocalDate updatedAt;
+    private LocalDateTime updatedAt;
     @Column
     @NotNull
-    private LocalDate dueDate;
+    private LocalDateTime dueDate;
     @Column
-    private LocalDate resolvedAt;
+    private LocalDateTime resolvedAt;
     @Column
     @NotNull
     @NotBlank
@@ -55,15 +55,15 @@ public class Task {
     @Enumerated(EnumType.STRING)
     private Status status = Status.NOT_STARTED;
 
-    public Task(String title, String description, PriorityLevel priority, LocalDate dueDate) {
+    public Task(String title, String description, PriorityLevel priority, LocalDateTime dueDate) {
         this.title = title;
         this.description = description;
         this.priority = priority;
         this.dueDate = dueDate;
     }
 
-    public void setDueDate(LocalDate dueDate) {
-        if (dueDate.isBefore(LocalDate.now())) {
+    public void setDueDate(LocalDateTime dueDate) {
+        if (dueDate.isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Invalid due date. Due date before creation time.");
         }
         this.dueDate = dueDate;
@@ -78,7 +78,7 @@ public class Task {
 
     public void setStatus(Status status) {
         if (status == Task.Status.COMPLETED) {
-            this.setResolvedAt(LocalDate.now());
+            this.setResolvedAt(LocalDateTime.now());
         }
         this.status = status;
     }
